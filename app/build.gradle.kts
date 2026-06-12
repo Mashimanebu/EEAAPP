@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.google.services)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -72,7 +72,6 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.cardview)
     implementation(libs.androidx.swiperefreshlayout)
-    implementation(libs.google.maps)
     implementation(libs.google.location)
     implementation(libs.mpandroidchart)
 
@@ -88,6 +87,16 @@ dependencies {
    ksp(libs.androidx.room.compiler)
 
     implementation(libs.pdf.viewer)
+    implementation(libs.coroutines.android)
+    implementation(libs.coroutines.play.services)
+    implementation(libs.maps.ktx)
+    implementation(libs.maps.compose)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
+    implementation(libs.firebase.messaging)
     implementation(libs.coroutines.android)
     implementation(libs.coroutines.play.services)
 

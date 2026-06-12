@@ -7,6 +7,24 @@ import com.pay.eeaapp.data.remote.FirebaseStorageSource
 import com.pay.eeaapp.data.remote.FirestoreSource
 import com.pay.eeaapp.domain.ProjectRepository
 import com.pay.eeaapp.domain.auth.AuthRepository
+import com.pay.eeaapp.domain.usecase.ApproveProjectUseCase
+import com.pay.eeaapp.domain.usecase.GetProjectStatsUseCase
+import com.pay.eeaapp.domain.usecase.GetSessionUseCase
+import com.pay.eeaapp.domain.usecase.ObserveAllProjectsUseCase
+import com.pay.eeaapp.domain.usecase.ObserveCurrentUserUseCase
+import com.pay.eeaapp.domain.usecase.ObserveMyProjectsUseCase
+import com.pay.eeaapp.domain.usecase.ObserveProjectDetailUseCase
+import com.pay.eeaapp.domain.usecase.RejectProjectUseCase
+import com.pay.eeaapp.domain.usecase.RequestAmendmentsUseCase
+import com.pay.eeaapp.domain.usecase.ResubmitProjectUseCase
+import com.pay.eeaapp.domain.usecase.SignInUseCase
+import com.pay.eeaapp.domain.usecase.SignOutUseCase
+import com.pay.eeaapp.domain.usecase.SignUpUseCase
+import com.pay.eeaapp.domain.usecase.StartReviewUseCase
+import com.pay.eeaapp.domain.usecase.SubmitProjectApplicationUseCase
+import com.pay.eeaapp.domain.usecase.SyncAllProjectsUseCase
+import com.pay.eeaapp.domain.usecase.SyncMyProjectsUseCase
+
 
 object ServiceLocator {
 
@@ -84,6 +102,6 @@ object ServiceLocator {
         SyncAllProjectsUseCase(getProjectRepository(context))
 
     fun syncMyProjectsUseCase(context: Context) =
-        SyncMyProjectsUseCase(getProjectRepository(context))
+        SyncMyProjectsUseCase(getProjectRepository(context), getSessionUseCase(context))
 }
 

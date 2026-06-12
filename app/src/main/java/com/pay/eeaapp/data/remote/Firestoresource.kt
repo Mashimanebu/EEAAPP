@@ -1,6 +1,8 @@
 package com.pay.eeaapp.data.remote
 
 import androidx.room.Query
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.pay.eeaapp.data.entities.ProjectDocumentEntity
 import com.pay.eeaapp.data.entities.ProjectEntity
 import com.pay.eeaapp.data.entities.ReviewCommentEntity
@@ -8,9 +10,9 @@ import com.pay.eeaapp.data.entities.UserEntity
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 import kotlin.collections.emptyList
 import kotlin.jvm.java
-
 
 class FirestoreSource(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -39,10 +41,6 @@ class FirestoreSource(
             .await()
     }
 
-    /**
-     * Listens for ALL projects (used by the EEA officer / admin and for the map+analytics).
-     * Emits the full list every time anything changes.
-     */
     fun observeAllProjects(): Flow<List<ProjectEntity>> = callbackFlow {
         val registration: ListenerRegistration = projectsCol
             .orderBy("updatedAt", Query.Direction.DESCENDING)
