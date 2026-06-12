@@ -25,7 +25,8 @@ glide = "5.0.7"
 pdfViewer = "3.2.0-beta.1"
 coroutines = "1.11.0"
 googleServices = "4.4.4"
-ksp = "2.0.21-1.0.27"
+ksp = "2.3.7"
+room = "2.8.4"
 
 
 [libraries]
@@ -65,12 +66,10 @@ firebase-firestore = { module = "com.google.firebase:firebase-firestore-ktx" }
 firebase-storage = { module = "com.google.firebase:firebase-storage-ktx" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging-ktx" }
 
-
 google-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "maps" }
 google-location = { module = "com.google.android.gms:play-services-location", version.ref = "location" }
 
 mpandroidchart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "mpandroidchart" }
-
 
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
@@ -80,6 +79,9 @@ pdf-viewer = { module = "com.github.barteksc:android-pdf-viewer", version.ref = 
 coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
 
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

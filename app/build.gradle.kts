@@ -82,7 +82,10 @@ dependencies {
     implementation(libs.mpandroidchart)
 
     implementation(libs.glide)
-   // kapt(libs.glide.compiler)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+
+   ksp(libs.androidx.room.compiler)
 
     implementation(libs.pdf.viewer)
     implementation(libs.coroutines.android)
