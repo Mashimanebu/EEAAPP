@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "419644996245",
+    "project_id": "eswatinienviromentalauthority",
+    "storage_bucket": "eswatinienviromentalauthority.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:419644996245:android:a280cdd587f447af01799c",
+        "android_client_info": {
+          "package_name": "com.pay.eeaapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8u1-aeJKqriOE90KWFRDRrxhsBImzo04"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
