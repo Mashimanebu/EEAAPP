@@ -35,8 +35,8 @@ class EEAFirebaseMessagingService : FirebaseMessagingService() {
         }
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
+        //    .setSmallIcon(R.drawable.ic_notification)
+            //  .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)
             .build()
@@ -65,8 +65,8 @@ object LocalNotifier {
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
+           // .setSmallIcon(R.drawable.ic_notification)
+          //  .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)
             .build()

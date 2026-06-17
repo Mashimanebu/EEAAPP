@@ -12,6 +12,7 @@ import com.pay.eeaapp.data.mappers.toDomain
 import com.pay.eeaapp.data.remote.FirebaseStorageSource
 import com.pay.eeaapp.data.remote.FirestoreSource
 import com.pay.eeaapp.domain.models.Project
+import com.pay.eeaapp.domain.models.ProjectDetail
 import com.pay.eeaapp.domain.models.ProjectStats
 import com.pay.eeaapp.domain.models.ProjectStatus
 import com.pay.eeaapp.domain.models.UserRole
@@ -65,6 +66,8 @@ class ProjectRepository(
     fun observeProjectById(projectId: String): Flow<Project?> =
         projectDao.observeProjectById(projectId).map { it?.toDomain() }
 
+
+
     suspend fun submitNewProject(
         proponentUid: String,
         proponentName: String,
@@ -104,9 +107,9 @@ class ProjectRepository(
             fileNames = fileNames
         )
 
-
         return entity.toDomainWithEmptyChildren()
     }
+
 
 
     suspend fun resubmitProject(

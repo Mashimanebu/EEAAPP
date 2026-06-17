@@ -1,4 +1,3 @@
-import org.gradle.kotlin.dsl.implementation
 
 plugins {
     alias(libs.plugins.android.application)
@@ -74,9 +73,6 @@ dependencies {
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.google.location)
     implementation(libs.mpandroidchart)
-
-
-    implementation(libs.maps.utils.ktx)
     implementation(libs.accompanist.permissions)
 
     implementation(libs.coil.compose)
@@ -84,9 +80,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
 
-   ksp(libs.androidx.room.compiler)
-
-    implementation(libs.pdf.viewer)
+    ksp(libs.androidx.room.compiler)
     implementation(libs.coroutines.android)
     implementation(libs.coroutines.play.services)
     implementation(libs.maps.ktx)
@@ -100,4 +94,6 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.coroutines.play.services)
 
+    implementation(libs.afreakyelf.pdf.viewer)
+    implementation(libs.android.maps.utils.ktx.v340)
 }
