@@ -1,4 +1,4 @@
-package com.pay.eeaapp.ui.proponent
+package com.pay.eeaapp.ui.proponent.state
 
 import com.pay.eeaapp.domain.models.Project
 import com.pay.eeaapp.domain.models.User

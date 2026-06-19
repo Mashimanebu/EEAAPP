@@ -1,4 +1,4 @@
-package com.pay.eeaapp.ui.proponent
+package com.pay.eeaapp.ui.proponent.state
 
 import android.net.Uri
 
@@ -8,6 +8,6 @@ data class ApplyUiState(
     val companyName: String = "",
     val latitude: String = "",
     val longitude: String = "",
-    val pickedFiles: List<Pair<Uri, String>> = emptyList(),  // uri to filename
+    val pickedFiles: List<Pair<Uri, String>> = emptyList(),
     val submitState: SubmitState = SubmitState.Idle
 )

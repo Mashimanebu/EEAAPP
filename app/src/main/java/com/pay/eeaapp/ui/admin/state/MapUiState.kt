@@ -1,4 +1,4 @@
-package com.pay.eeaapp.ui.admin
+package com.pay.eeaapp.ui.admin.state
 
 import com.pay.eeaapp.data.dao.ProjectLocationRow
 

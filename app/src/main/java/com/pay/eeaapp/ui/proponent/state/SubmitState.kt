@@ -1,4 +1,4 @@
-package com.pay.eeaapp.ui.proponent
+package com.pay.eeaapp.ui.proponent.state
 
 sealed class SubmitState {
     object Idle : SubmitState()

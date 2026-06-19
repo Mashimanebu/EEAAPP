@@ -5,6 +5,10 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.pay.eeaapp.di.ServiceLocator
+import com.pay.eeaapp.ui.proponent.state.ApplyUiState
+import com.pay.eeaapp.ui.proponent.state.ProjectDetailUiState
+import com.pay.eeaapp.ui.proponent.state.ProponentDashboardUiState
+import com.pay.eeaapp.ui.proponent.state.SubmitState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
