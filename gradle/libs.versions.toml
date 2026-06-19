@@ -13,6 +13,7 @@ composeBom = "2026.05.01"
 appcompat = "1.7.1"
 mapsKtx = "6.0.1"
 material = "1.14.0"
+material3 = "1.4.0"
 constraintlayout = "2.2.1"
 lifecycle = "2.11.0"
 pdfViewerVersion = "2.1.1"
@@ -40,6 +41,7 @@ credentials = "1.6.0"
 googleid = "1.2.0"
 
 
+
 [libraries]
 afreakyelf-pdf-viewer = { module = "io.github.afreakyelf:Pdf-Viewer", version.ref = "pdfViewerVersion" }
 android-maps-utils-ktx-v340 = { module = "com.google.maps.android:maps-utils-ktx", version.ref = "androidMapsUtilsKtx" }
@@ -62,7 +64,9 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 
-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation" }
+androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata" }
 maps-ktx = { module = "com.google.maps.android:maps-ktx", version.ref = "mapsKtx" }
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }

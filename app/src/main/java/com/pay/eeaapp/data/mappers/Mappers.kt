@@ -14,9 +14,9 @@ import com.pay.eeaapp.domain.models.ReviewComment
 
 fun UserEntity.toDomain(): User = User(
     uid = uid,
-    fullName = fullName,
-    email = email,
-    company = company,
+    fullName = fullName ?: "",
+    email = email ?: "",
+    company = company ?: "",
     role = if (role == "ADMIN") UserRole.ADMIN else UserRole.PROPONENT
 )
 

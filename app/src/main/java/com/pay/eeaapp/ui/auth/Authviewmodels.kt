@@ -24,7 +24,7 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun login(email: String, password: String) {
+    fun login(email: String , password: String) {
         if (email.isBlank() || password.isBlank()) {
             _state.value = AuthState.Error("Email and password are required.")
             return

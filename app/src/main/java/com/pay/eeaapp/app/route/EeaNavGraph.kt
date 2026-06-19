@@ -7,8 +7,17 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.pay.eeaapp.ui.admin.AdminDashboardScreen
+import com.pay.eeaapp.ui.admin.AdminProjectReviewScreen
+import com.pay.eeaapp.ui.admin.AnalyticsScreen
+import com.pay.eeaapp.ui.admin.MapScreen
+import com.pay.eeaapp.ui.auth.LoginScreen
+import com.pay.eeaapp.ui.auth.SignUpScreen
+import com.pay.eeaapp.ui.detail.ProjectDetailScreen
+import com.pay.eeaapp.ui.proponent.ApplyProjectScreen
+import com.pay.eeaapp.ui.proponent.ProponentDashboardScreen
 
-/*
+
 @Composable
 fun EeaNavHost(
     navController: NavHostController,
@@ -93,4 +102,3 @@ fun EeaNavHost(
     }
 }
 
- */

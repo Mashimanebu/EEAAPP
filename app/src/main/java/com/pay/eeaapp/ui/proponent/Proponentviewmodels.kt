@@ -95,8 +95,8 @@ class ApplyProjectViewModel(app: Application) : AndroidViewModel(app) {
                         title         = s.title.trim(),
                         description   = s.description.trim(),
                         companyName   = s.companyName.trim(),
-                        latitude      = lat!!,
-                        longitude     = lng!!,
+                        latitude      = lat,
+                        longitude     = lng,
                         documentUris  = s.pickedFiles.map { p -> p.first },
                         fileNames     = s.pickedFiles.map { p -> p.second }
                     )

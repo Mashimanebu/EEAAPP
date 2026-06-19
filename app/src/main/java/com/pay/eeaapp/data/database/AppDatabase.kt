@@ -15,7 +15,7 @@ import com.pay.eeaapp.data.entities.UserEntity
 
 @Database(
     entities = [UserEntity::class, ProjectEntity::class, ProjectDocumentEntity::class, ReviewCommentEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
