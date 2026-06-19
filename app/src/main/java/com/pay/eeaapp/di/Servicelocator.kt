@@ -102,6 +102,6 @@ object ServiceLocator {
         SyncAllProjectsUseCase(getProjectRepository(context))
 
     fun syncMyProjectsUseCase(context: Context) =
-        SyncMyProjectsUseCase(getProjectRepository(context), getSessionUseCase(context))
+        SyncMyProjectsUseCase(getProjectRepository(context))
 }
 

@@ -29,7 +29,7 @@ class AdminDashboardViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun load() {
         viewModelScope.launch {
-            val uid = getSession()?.uid ?: return@launch
+            val uid = getSession.currentUser()?.uid ?: return@launch
             launch {
                 observeUser(uid).collect { user ->
                     _uiState.update { it.copy(user = user) }
@@ -62,7 +62,6 @@ class AdminProjectReviewViewModel(app: Application) : AndroidViewModel(app) {
     private val requestAmendments = ServiceLocator.requestAmendmentsUseCase(app)
     private val approve = ServiceLocator.approveProjectUseCase(app)
     private val reject = ServiceLocator.rejectProjectUseCase(app)
-    private val getSession = ServiceLocator.getSessionUseCase(app)
 
     private val _uiState = MutableStateFlow(AdminReviewUiState())
     val uiState: StateFlow<AdminReviewUiState> = _uiState.asStateFlow()
@@ -72,7 +71,8 @@ class AdminProjectReviewViewModel(app: Application) : AndroidViewModel(app) {
             observeDetail(projectId).collect { detail ->
                 _uiState.update {
                     it.copy(
-                        project = detail?.project,
+
+                        project = detail,
                         documents = detail?.documents ?: emptyList(),
                         reviews = detail?.reviews ?: emptyList(),
                         isLoading = false
@@ -124,10 +124,8 @@ class AdminProjectReviewViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             _uiState.update { it.copy(actionState = ReviewAction.Loading) }
             try {
-                val uid = getSession()?.uid ?: throw IllegalStateException("Not signed in.")
                 requestAmendments.invoke(
                     projectId = projectId,
-                    officerUid = uid,
                     comment = s.comment,
                     attachmentUris = s.attachments.map { it.first },
                     attachmentNames = s.attachments.map { it.second }
@@ -155,8 +153,7 @@ class AdminProjectReviewViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             _uiState.update { it.copy(actionState = ReviewAction.Loading) }
             try {
-                val uid = getSession()?.uid ?: throw IllegalStateException("Not signed in.")
-                approve.invoke(projectId, uid, _uiState.value.comment.ifBlank { null })
+                approve.invoke(projectId,_uiState.value.comment.ifBlank { null })
                 _uiState.update { it.copy(actionState = ReviewAction.Done) }
             } catch (e: Exception) {
                 _uiState.update {
@@ -179,8 +176,7 @@ class AdminProjectReviewViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             _uiState.update { it.copy(actionState = ReviewAction.Loading) }
             try {
-                val uid = getSession()?.uid ?: throw IllegalStateException("Not signed in.")
-                reject.invoke(projectId, uid, s.comment)
+                reject.invoke(projectId, s.comment)
                 _uiState.update { it.copy(actionState = ReviewAction.Done) }
             } catch (e: Exception) {
                 _uiState.update {
@@ -234,16 +230,14 @@ class AnalyticsViewModel(app: Application) : AndroidViewModel(app) {
 }
 
 class MapViewModel(app: Application) : AndroidViewModel(app) {
-
     private val repo = ServiceLocator.getProjectRepository(app)
-
     private val _uiState = MutableStateFlow(MapUiState())
     val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            repo.observeAllProjectLocations().collect { locs ->
-                _uiState.update { it.copy(locations = locs, isLoading = false) }
+            repo.observeAllProjectLocations().collect { locations ->
+                _uiState.update { it.copy(locations = locations, isLoading = false) }
             }
         }
     }

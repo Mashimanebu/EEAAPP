@@ -26,7 +26,7 @@ class ProponentDashboardViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun load() {
         viewModelScope.launch {
-            val uid = getSession()?.uid ?: return@launch
+            val uid = getSession.currentUser()?.uid ?: return@launch
 
             launch {
                 observeUser(uid).collect { user ->
@@ -34,7 +34,7 @@ class ProponentDashboardViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             try {
-                syncProjects()
+                syncProjects(uid)
             } catch (_: Exception) { /* best-effort */ }
             observeProjects(uid).collect { projects ->
                 _uiState.update { it.copy(projects = projects, isLoading = false) }
@@ -83,9 +83,11 @@ class ApplyProjectViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             _uiState.update { it.copy(submitState = SubmitState.Loading) }
+            val proponent = getSession.currentUser()
             _uiState.update {
                 try {
                     submitUseCase(
+                        proponentName = proponent?.fullName ?: "",
                         title         = s.title.trim(),
                         description   = s.description.trim(),
                         companyName   = s.companyName.trim(),
@@ -120,7 +122,7 @@ class ProjectDetailViewModel(app: Application) : AndroidViewModel(app) {
             observeDetail(projectId).collect { detail ->
                 _uiState.update {
                     it.copy(
-                        project   = detail?.project,
+                        project   = detail,
                         documents = detail?.documents ?: emptyList(),
                         reviews   = detail?.reviews   ?: emptyList(),
                         isLoading = false

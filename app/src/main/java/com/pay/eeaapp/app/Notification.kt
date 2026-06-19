@@ -5,11 +5,8 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat.getSystemService
 import com.google.firebase.messaging.FirebaseMessagingService
-import com.google.firebase.messaging.R
 import com.google.firebase.messaging.RemoteMessage
-
 class EEAFirebaseMessagingService : FirebaseMessagingService() {
 
     companion object {

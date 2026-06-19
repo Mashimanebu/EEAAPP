@@ -1,8 +1,8 @@
 package com.pay.eeaapp.data.remote
 
-import androidx.room.Query
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Query
 import com.pay.eeaapp.data.entities.ProjectDocumentEntity
 import com.pay.eeaapp.data.entities.ProjectEntity
 import com.pay.eeaapp.data.entities.ReviewCommentEntity

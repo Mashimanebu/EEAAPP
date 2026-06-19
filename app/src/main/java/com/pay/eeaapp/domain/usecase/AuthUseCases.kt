@@ -5,8 +5,8 @@ import com.pay.eeaapp.domain.models.User
 import kotlinx.coroutines.flow.Flow
 
 class GetSessionUseCase(private val repo: AuthRepository) {
-    val isLoggedIn: Boolean get() = repo.isLoggedIn
-    val currentUid: String? get() = repo.currentUid
+    val isLoggedIn: Boolean  get() = repo.isLoggedIn
+    val currentUid: String?  get() = repo.currentUid
     suspend fun currentUser(): User? = currentUid?.let { repo.getCurrentUserOnce(it) }
 }
 

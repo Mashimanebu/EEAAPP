@@ -19,7 +19,7 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
 
     fun checkSession() {
         viewModelScope.launch {
-            val user = getSession()
+            val user = getSession.currentUser()
             if (user != null) _state.value = AuthState.Success(user)
         }
     }

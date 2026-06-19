@@ -1,9 +1,9 @@
 package com.pay.eeaapp.domain
 
-import android.icu.text.SimpleDateFormat
 import android.net.Uri
 import com.pay.eeaapp.data.dao.DocumentDao
 import com.pay.eeaapp.data.dao.ProjectDao
+import com.pay.eeaapp.data.dao.ProjectLocationRow
 import com.pay.eeaapp.data.dao.ReviewDao
 import com.pay.eeaapp.data.entities.ProjectDocumentEntity
 import com.pay.eeaapp.data.entities.ProjectEntity
@@ -18,11 +18,11 @@ import com.pay.eeaapp.domain.models.ProjectStatus
 import com.pay.eeaapp.domain.models.UserRole
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.sql.Date
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 import java.util.UUID
-import kotlin.collections.forEachIndexed
 
 class ProjectRepository(
     private val projectDao: ProjectDao,
@@ -31,42 +31,55 @@ class ProjectRepository(
     private val firestoreSource: FirestoreSource,
     private val storageSource: FirebaseStorageSource
 ) {
-
     suspend fun syncAllProjects() {
-        firestoreSource.observeAllProjects().collectLatestInto { remoteProjects ->
+        firestoreSource.observeAllProjects().collect { remoteProjects ->
             projectDao.upsertAll(remoteProjects)
         }
     }
 
     suspend fun syncProjectsForProponent(uid: String) {
-        firestoreSource.observeProjectsForProponent(uid).collectLatestInto { remoteProjects ->
+        firestoreSource.observeProjectsForProponent(uid).collect { remoteProjects ->
             projectDao.upsertAll(remoteProjects)
         }
     }
 
     suspend fun syncProjectDetails(projectId: String) {
-        firestoreSource.observeDocuments(projectId).collectLatestInto { docs ->
+        firestoreSource.observeDocuments(projectId).collect { docs ->
             documentDao.insertAll(docs)
         }
-        firestoreSource.observeReviews(projectId).collectLatestInto { reviews ->
+        firestoreSource.observeReviews(projectId).collect { reviews ->
             reviewDao.insertAll(reviews)
         }
     }
 
-
     fun observeProjectsForProponent(uid: String): Flow<List<Project>> =
-        projectDao.observeProjectsForProponent(uid).map { list -> list.map { it.toDomain() } }
+        projectDao.observeProjectsForProponent(uid)
+            .map { list -> list.map { it.toDomain() } }
 
     fun observeAllProjects(): Flow<List<Project>> =
-        projectDao.observeAllProjects().map { list -> list.map { it.toDomain() } }
+        projectDao.observeAllProjects()
+            .map { list -> list.map { it.toDomain() } }
 
     fun observeProjectsByStatus(status: ProjectStatus): Flow<List<Project>> =
-        projectDao.observeProjectsByStatus(status.name).map { list -> list.map { it.toDomain() } }
+        projectDao.observeProjectsByStatus(status.name)
+            .map { list -> list.map { it.toDomain() } }
 
     fun observeProjectById(projectId: String): Flow<Project?> =
         projectDao.observeProjectById(projectId).map { it?.toDomain() }
 
 
+    fun observeProjectDetail(projectId: String): Flow<ProjectDetail?> =
+        projectDao.observeProjectById(projectId).map { withDetails ->
+            withDetails?.let {
+                ProjectDetail(
+                    project   = it.toDomain(),
+                    documents = it.documents.map { doc -> doc.toDomain() },
+                    reviews   = it.reviews.map   { rev -> rev.toDomain() }
+                )
+            }
+        }
+    fun observeAllProjectLocations(): Flow<List<ProjectLocationRow>> =
+        projectDao.observeAllProjectLocations()
 
     suspend fun submitNewProject(
         proponentUid: String,
@@ -79,38 +92,29 @@ class ProjectRepository(
         documentUris: List<Uri>,
         fileNames: List<String>
     ): Project {
-        val now = System.currentTimeMillis()
+        val now       = System.currentTimeMillis()
         val projectId = UUID.randomUUID().toString()
 
         val entity = ProjectEntity(
-            id = projectId,
-            proponentUid = proponentUid,
+            id            = projectId,
+            proponentUid  = proponentUid,
             proponentName = proponentName,
-            companyName = companyName,
-            title = title,
-            description = description,
-            latitude = latitude,
-            longitude = longitude,
-            status = ProjectStatus.SUBMITTED.name,
-            createdAt = now,
-            updatedAt = now
+            companyName   = companyName,
+            title         = title,
+            description   = description,
+            latitude      = latitude,
+            longitude     = longitude,
+            status        = ProjectStatus.SUBMITTED.name,
+            createdAt     = now,
+            updatedAt     = now
         )
 
         projectDao.upsert(entity)
         firestoreSource.upsertProject(entity)
-
-        uploadAndAttachDocuments(
-            projectId = projectId,
-            uploaderUid = proponentUid,
-            uploaderRole = UserRole.PROPONENT,
-            documentUris = documentUris,
-            fileNames = fileNames
-        )
+        uploadAndAttachDocuments(projectId, proponentUid, UserRole.PROPONENT, documentUris, fileNames)
 
         return entity.toDomainWithEmptyChildren()
     }
-
-
 
     suspend fun resubmitProject(
         projectId: String,
@@ -118,13 +122,7 @@ class ProjectRepository(
         documentUris: List<Uri>,
         fileNames: List<String>
     ) {
-        uploadAndAttachDocuments(
-            projectId = projectId,
-            uploaderUid = proponentUid,
-            uploaderRole = UserRole.PROPONENT,
-            documentUris = documentUris,
-            fileNames = fileNames
-        )
+        uploadAndAttachDocuments(projectId, proponentUid, UserRole.PROPONENT, documentUris, fileNames)
         updateStatus(projectId, ProjectStatus.SUBMITTED)
     }
 
@@ -140,15 +138,10 @@ class ProjectRepository(
         attachmentNames: List<String>
     ) {
         addReview(projectId, officerUid, comment)
-        uploadAndAttachDocuments(
-            projectId = projectId,
-            uploaderUid = officerUid,
-            uploaderRole = UserRole.ADMIN,
-            documentUris = attachmentUris,
-            fileNames = attachmentNames
-        )
+        uploadAndAttachDocuments(projectId, officerUid, UserRole.ADMIN, attachmentUris, attachmentNames)
         updateStatus(projectId, ProjectStatus.AMENDMENTS_REQUIRED)
     }
+
     suspend fun addReviewComment(projectId: String, officerUid: String, comment: String) {
         addReview(projectId, officerUid, comment)
     }
@@ -165,16 +158,15 @@ class ProjectRepository(
 
     suspend fun getProjectStats(): ProjectStats {
         val statusCounts = projectDao.getStatusCounts().associate { it.status to it.count }
-        val timestamps = projectDao.getAllCreatedAtTimestamps()
-
+        val timestamps   = projectDao.getAllCreatedAtTimestamps()
         return ProjectStats(
-            totalSubmitted = statusCounts.values.sum(),
-            totalApproved = statusCounts[ProjectStatus.APPROVED.name] ?: 0,
-            totalRejected = statusCounts[ProjectStatus.REJECTED.name] ?: 0,
+            totalSubmitted   = statusCounts.values.sum(),
+            totalApproved    = statusCounts[ProjectStatus.APPROVED.name]     ?: 0,
+            totalRejected    = statusCounts[ProjectStatus.REJECTED.name]     ?: 0,
             totalUnderReview = statusCounts[ProjectStatus.UNDER_REVIEW.name] ?: 0,
-            weekly = bucketByDayOfWeek(timestamps),
-            monthly = bucketByMonth(timestamps),
-            yearly = bucketByYear(timestamps)
+            weekly           = bucketByDayOfWeek(timestamps),
+            monthly          = bucketByMonth(timestamps),
+            yearly           = bucketByYear(timestamps)
         )
     }
 
@@ -187,15 +179,15 @@ class ProjectRepository(
     ) {
         documentUris.forEachIndexed { index, uri ->
             val name = fileNames.getOrElse(index) { "document_$index.pdf" }
-            val url = storageSource.uploadProjectDocument(projectId, uri, name)
-            val doc = ProjectDocumentEntity(
-                id = UUID.randomUUID().toString(),
-                projectId = projectId,
-                fileName = name,
-                fileUrl = url,
-                uploadedByUid = uploaderUid,
+            val url  = storageSource.uploadProjectDocument(projectId, uri, name)
+            val doc  = ProjectDocumentEntity(
+                id             = UUID.randomUUID().toString(),
+                projectId      = projectId,
+                fileName       = name,
+                fileUrl        = url,
+                uploadedByUid  = uploaderUid,
                 uploadedByRole = uploaderRole.name,
-                uploadedAt = System.currentTimeMillis()
+                uploadedAt     = System.currentTimeMillis()
             )
             documentDao.insert(doc)
             firestoreSource.addDocument(doc)
@@ -204,11 +196,11 @@ class ProjectRepository(
 
     private suspend fun addReview(projectId: String, officerUid: String, comment: String) {
         val review = ReviewCommentEntity(
-            id = UUID.randomUUID().toString(),
-            projectId = projectId,
+            id         = UUID.randomUUID().toString(),
+            projectId  = projectId,
             officerUid = officerUid,
-            comment = comment,
-            createdAt = System.currentTimeMillis()
+            comment    = comment,
+            createdAt  = System.currentTimeMillis()
         )
         reviewDao.insert(review)
         firestoreSource.addReview(review)
@@ -221,23 +213,23 @@ class ProjectRepository(
     }
 
     private fun ProjectEntity.toDomainWithEmptyChildren(): Project = Project(
-        id = id,
-        proponentUid = proponentUid,
+        id            = id,
+        proponentUid  = proponentUid,
         proponentName = proponentName,
-        companyName = companyName,
-        title = title,
-        description = description,
-        latitude = latitude,
-        longitude = longitude,
-        status = ProjectStatus.valueOf(status),
-        createdAt = createdAt,
-        updatedAt = updatedAt
+        companyName   = companyName,
+        title         = title,
+        description   = description,
+        latitude      = latitude,
+        longitude     = longitude,
+        status        = ProjectStatus.valueOf(status),
+        createdAt     = createdAt,
+        updatedAt     = updatedAt
     )
 
     private fun bucketByDayOfWeek(timestamps: List<Long>): Map<String, Int> {
-        val labels = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
-        val result = linkedMapOf<String, Int>().apply { labels.forEach { put(it, 0) } }
-        val cal = Calendar.getInstance()
+        val labels  = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+        val result  = linkedMapOf<String, Int>().apply { labels.forEach { put(it, 0) } }
+        val cal     = Calendar.getInstance()
         val weekAgo = cal.timeInMillis - 7L * 24 * 60 * 60 * 1000
         timestamps.filter { it >= weekAgo }.forEach { ts ->
             cal.timeInMillis = ts
@@ -250,18 +242,13 @@ class ProjectRepository(
     private fun bucketByMonth(timestamps: List<Long>): Map<String, Int> {
         val format = SimpleDateFormat("MMM yyyy", Locale.getDefault())
         val result = linkedMapOf<String, Int>()
-        val cal = Calendar.getInstance()
-
         for (i in 11 downTo 0) {
-            val c = Calendar.getInstance()
-            c.add(Calendar.MONTH, -i)
+            val c = Calendar.getInstance(); c.add(Calendar.MONTH, -i)
             result[format.format(c.time)] = 0
         }
         timestamps.forEach { ts ->
             val label = format.format(Date(ts))
-            if (result.containsKey(label)) {
-                result[label] = (result[label] ?: 0) + 1
-            }
+            if (result.containsKey(label)) result[label] = (result[label] ?: 0) + 1
         }
         return result
     }
@@ -274,9 +261,5 @@ class ProjectRepository(
             result[label] = (result[label] ?: 0) + 1
         }
         return result.toSortedMap()
-    }
-
-    private suspend fun <T> Flow<T>.collectLatestInto(action: suspend (T) -> Unit) {
-        this.collect { action(it) }
     }
 }

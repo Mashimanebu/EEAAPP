@@ -33,7 +33,6 @@ interface ProjectDao {
     @Transaction
     @Query("SELECT * FROM projects WHERE status = :status ORDER BY updatedAt DESC")
     fun observeProjectsByStatus(status: String): Flow<List<ProjectWithDetails>>
-
     @Transaction
     @Query("SELECT * FROM projects WHERE id = :projectId LIMIT 1")
     fun observeProjectById(projectId: String): Flow<ProjectWithDetails?>
