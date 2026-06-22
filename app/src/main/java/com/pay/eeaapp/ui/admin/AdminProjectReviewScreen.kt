@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pay.eeaapp.domain.models.ProjectDocument
@@ -64,9 +65,11 @@ fun AdminProjectReviewScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
             val project = uiState.project
             when {
                 uiState.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -88,7 +91,12 @@ fun AdminProjectReviewScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Eco,
                                     contentDescription = "Environmental Assessment",
@@ -96,7 +104,12 @@ fun AdminProjectReviewScreen(
                                     modifier = Modifier.size(28.dp)
                                 )
                                 Spacer(Modifier.width(8.dp))
-                                Text(project.title, style = MaterialTheme.typography.headlineSmall)
+                                Text(
+                                    text = project.title,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
                             StatusChip(project.status)
                         }

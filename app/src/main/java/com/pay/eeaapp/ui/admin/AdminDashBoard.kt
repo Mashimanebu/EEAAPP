@@ -1,5 +1,7 @@
 package com.pay.eeaapp.ui.admin
 
+import android.R.attr.type
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,7 +30,10 @@ import com.pay.eeaapp.domain.models.Project
 import com.pay.eeaapp.domain.models.ProjectStatus
 import com.pay.eeaapp.domain.models.User
 import com.pay.eeaapp.ui.admin.state.AdminFilter
+import com.pay.eeaapp.ui.components.ProjectExporter
 import com.pay.eeaapp.ui.components.StatusChip
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,11 +78,11 @@ fun AdminDashboardScreen(
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(32.dp)
                                 .clip(CircleShape)
                                 .background(EeaGreen),
                             contentAlignment = Alignment.Center
@@ -86,21 +91,16 @@ fun AdminDashboardScreen(
                                 Icons.Outlined.Eco,
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                         }
-                        Column {
-                            Text(
-                                "Admin Dashboard",
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                            Text(
-                                "Eswatini Environment Authority",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text(
+                            "EEA Admin",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 },
                 actions = {
@@ -110,15 +110,7 @@ fun AdminDashboardScreen(
                     IconButton(onClick = onMapClick) {
                         Icon(Icons.Default.Map, contentDescription = "Map")
                     }
-                    Row(
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .clip(RoundedCornerShape(50))
-                            .clickable { showAccountSheet = true }
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    IconButton(onClick = { showAccountSheet = true }) {
                         Box(
                             modifier = Modifier
                                 .size(34.dp)
@@ -133,34 +125,13 @@ fun AdminDashboardScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                        Column {
-                            Text(
-                                text = userName,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = "Administrator",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Icon(
-                            Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
-        }
+        },
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -221,6 +192,11 @@ fun AdminDashboardScreen(
             }
 
             item {
+
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val exportScope = rememberCoroutineScope()
+                var isExporting by remember { mutableStateOf(false) }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -228,7 +204,7 @@ fun AdminDashboardScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = when (uiState.filter) {
                                 AdminFilter.ALL                 -> "All applications"
@@ -246,6 +222,52 @@ fun AdminDashboardScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            exportScope.launch {
+                                isExporting = true
+                                try {
+                                    val uri = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                        ProjectExporter.export(
+                                            context   = context,
+                                            projects  = uiState.allProjects,
+                                            documents = uiState.allDocuments,
+                                            reviews   = uiState.allReviews
+                                        )
+                                    }
+                                    val intent = Intent(Intent.ACTION_SEND).apply {
+                                        type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                        putExtra(Intent.EXTRA_STREAM, uri)
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }
+                                    context.startActivity(Intent.createChooser(intent, "Export to Excel"))
+                                } finally {
+                                    isExporting = false
+                                }
+                            }
+                        },
+                        enabled = !isExporting && uiState.allProjects.isNotEmpty(),
+                        modifier = Modifier.height(36.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, EeaGreen),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = EeaGreen)
+                    ) {
+                        if (isExporting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                strokeWidth = 2.dp,
+                                color = EeaGreen
+                            )
+                        } else {
+                            Icon(
+                                Icons.Default.FileDownload,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text("Export to Excel", fontSize = 12.sp)
+                        }
                     }
                 }
                 LazyRow(

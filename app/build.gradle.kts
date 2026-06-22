@@ -104,4 +104,6 @@ dependencies {
 
     implementation(libs.google.location)
     implementation(libs.play.services.base)
+    implementation(libs.poi.ooxml)
+    implementation(libs.poi.v551)
 }

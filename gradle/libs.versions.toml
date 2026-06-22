@@ -19,6 +19,9 @@ lifecycle = "2.11.0"
 pdfViewerVersion = "2.1.1"
 playServicesBase = "18.10.0"
 playServicesLocation = "21.2.0"
+poi = "5.2.3"
+poiOoxml = "5.5.1"
+poiVersion = "5.5.1"
 recyclerview = "1.4.0"
 cardview = "1.0.0"
 swiperefresh = "1.2.0"
@@ -110,6 +113,9 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
 play-services-base = { module = "com.google.android.gms:play-services-base", version.ref = "playServicesBase" }
 play-services-location-v2120 = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+poi = { module = "org.apache.poi:poi", version.ref = "poi" }
+poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "poiOoxml" }
+poi-v551 = { module = "org.apache.poi:poi", version.ref = "poiVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -4,12 +4,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -26,6 +30,8 @@ fun SignUpScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirm by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(state) {
         if (state is AuthState.Success) {
@@ -68,19 +74,45 @@ fun SignUpScreen(
             Spacer(Modifier.height(12.dp))
 
             OutlinedTextField(
-                value = password, onValueChange = { password = it },
-                label = { Text("Password") }, singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                singleLine = true,
+                visualTransformation = if (passwordVisible) VisualTransformation.None
+                else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Filled.VisibilityOff
+                            else Icons.Filled.Visibility,
+                            contentDescription = if (passwordVisible) "Hide password"
+                            else "Show password"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(12.dp))
 
             OutlinedTextField(
-                value = confirm, onValueChange = { confirm = it },
-                label = { Text("Confirm Password") }, singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
+                value = confirm,
+                onValueChange = { confirm = it },
+                label = { Text("Confirm Password") },
+                singleLine = true,
+                visualTransformation = if (confirmVisible) VisualTransformation.None
+                else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { confirmVisible = !confirmVisible }) {
+                        Icon(
+                            imageVector = if (confirmVisible) Icons.Filled.VisibilityOff
+                            else Icons.Filled.Visibility,
+                            contentDescription = if (confirmVisible) "Hide password"
+                            else "Show password"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(8.dp))
