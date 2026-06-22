@@ -103,5 +103,7 @@ object ServiceLocator {
 
     fun syncMyProjectsUseCase(context: Context) =
         SyncMyProjectsUseCase(getProjectRepository(context))
+
+    fun getUserDao(context: Context) = getDatabase(context).userDao()
 }
 

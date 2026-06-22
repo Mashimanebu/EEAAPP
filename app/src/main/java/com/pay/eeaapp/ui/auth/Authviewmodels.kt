@@ -3,11 +3,13 @@ package com.pay.eeaapp.ui.auth
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.play.integrity.internal.s
 import com.pay.eeaapp.di.ServiceLocator
 import com.pay.eeaapp.ui.auth.AuthState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class LoginViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -19,12 +21,24 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
 
     fun checkSession() {
         viewModelScope.launch {
-            val user = getSession.currentUser()
-            if (user != null) _state.value = AuthState.Success(user)
+            val firebaseUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+
+            if (firebaseUser == null) return@launch
+
+            try {
+                firebaseUser.reload().await()
+
+                val user = getSession.currentUser()
+                if (user != null) _state.value = AuthState.Success(user)
+
+            } catch (e: Exception) {
+                com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+                _state.value = AuthState.Idle
+            }
         }
     }
 
-    fun login(email: String , password: String) {
+    fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
             _state.value = AuthState.Error("Email and password are required.")
             return

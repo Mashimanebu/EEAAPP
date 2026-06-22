@@ -4,6 +4,8 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.pay.eeaapp.data.entities.UserEntity
+import com.pay.eeaapp.data.remote.FirestoreSource
 import com.pay.eeaapp.di.ServiceLocator
 import com.pay.eeaapp.ui.admin.state.AdminDashboardUiState
 import com.pay.eeaapp.ui.admin.state.AdminFilter
@@ -17,7 +19,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-
 class AdminDashboardViewModel(app: Application) : AndroidViewModel(app) {
 
     private val observeUser = ServiceLocator.observeCurrentUserUseCase(app)
@@ -25,6 +26,8 @@ class AdminDashboardViewModel(app: Application) : AndroidViewModel(app) {
     private val syncAll = ServiceLocator.syncAllProjectsUseCase(app)
     private val signOut = ServiceLocator.signOutUseCase(app)
     private val getSession = ServiceLocator.getSessionUseCase(app)
+    private val firestoreSource = FirestoreSource()
+    private val userDao = ServiceLocator.getUserDao(app)
 
     private val _uiState = MutableStateFlow(AdminDashboardUiState())
     val uiState: StateFlow<AdminDashboardUiState> = _uiState.asStateFlow()
@@ -41,10 +44,11 @@ class AdminDashboardViewModel(app: Application) : AndroidViewModel(app) {
                     _uiState.update { it.copy(user = user) }
                 }
             }
-
-            try {
-                syncAll()
-            } catch (_: Exception) {
+            launch {
+                try {
+                    syncAll()
+                } catch (_: Exception) {
+                }
             }
             observeAll().collect { projects ->
                 _uiState.update { it.copy(allProjects = projects, isLoading = false) }
@@ -59,12 +63,37 @@ class AdminDashboardViewModel(app: Application) : AndroidViewModel(app) {
     fun signOut() {
         signOut.invoke()
     }
+
+    fun updateProfile(fullName: String, company: String) {
+        viewModelScope.launch {
+            val currentUser = _uiState.value.user ?: return@launch
+            val updated = UserEntity(
+                uid = currentUser.uid,
+                fullName = fullName,
+                email = currentUser.email,
+                company = company,
+                role = currentUser.role.name
+            )
+            try {
+                firestoreSource.upsertUser(updated)
+                userDao.upsert(updated)
+                _uiState.update {
+                    it.copy(
+                        user = currentUser.copy(
+                            fullName = fullName, company = company
+                        )
+                    )
+                }
+            } catch (_: Exception) {
+            }
+        }
+    }
 }
 
 
 class AdminProjectReviewViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val observeDetail = ServiceLocator.observeProjectDetailUseCase(app)
+    private val repo = ServiceLocator.getProjectRepository(app)
     private val startReview = ServiceLocator.startReviewUseCase(app)
     private val requestAmendments = ServiceLocator.requestAmendmentsUseCase(app)
     private val approve = ServiceLocator.approveProjectUseCase(app)
@@ -73,13 +102,22 @@ class AdminProjectReviewViewModel(app: Application) : AndroidViewModel(app) {
     private val _uiState = MutableStateFlow(AdminReviewUiState())
     val uiState: StateFlow<AdminReviewUiState> = _uiState.asStateFlow()
 
+
     fun load(projectId: String) {
         viewModelScope.launch {
-            observeDetail(projectId).collect { detail ->
+            _uiState.update { it.copy(isLoading = true) }
+
+            launch {
+                try {
+                    repo.syncProjectDetails(projectId)
+                } catch (_: Exception) {
+                }
+            }
+
+            repo.observeProjectDetail(projectId).collect { detail ->
                 _uiState.update {
                     it.copy(
-
-                        project = detail,
+                        project = detail?.project,
                         documents = detail?.documents ?: emptyList(),
                         reviews = detail?.reviews ?: emptyList(),
                         isLoading = false
@@ -99,8 +137,7 @@ class AdminProjectReviewViewModel(app: Application) : AndroidViewModel(app) {
 
     fun removeAttachment(index: Int) {
         _uiState.update {
-            it.copy(
-                attachments = it.attachments.toMutableList().also { l -> l.removeAt(index) })
+            it.copy(attachments = it.attachments.toMutableList().also { l -> l.removeAt(index) })
         }
     }
 
@@ -135,13 +172,10 @@ class AdminProjectReviewViewModel(app: Application) : AndroidViewModel(app) {
                     projectId = projectId,
                     comment = s.comment,
                     attachmentUris = s.attachments.map { it.first },
-                    attachmentNames = s.attachments.map { it.second }
-                )
+                    attachmentNames = s.attachments.map { it.second })
                 _uiState.update {
                     it.copy(
-                        actionState = ReviewAction.Done,
-                        comment = "",
-                        attachments = emptyList()
+                        actionState = ReviewAction.Done, comment = "", attachments = emptyList()
                     )
                 }
             } catch (e: Exception) {
@@ -160,7 +194,7 @@ class AdminProjectReviewViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             _uiState.update { it.copy(actionState = ReviewAction.Loading) }
             try {
-                approve.invoke(projectId,_uiState.value.comment.ifBlank { null })
+                approve.invoke(projectId, _uiState.value.comment.ifBlank { null })
                 _uiState.update { it.copy(actionState = ReviewAction.Done) }
             } catch (e: Exception) {
                 _uiState.update {
@@ -222,10 +256,7 @@ class AnalyticsViewModel(app: Application) : AndroidViewModel(app) {
                 _uiState.update { it.copy(stats = stats, isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = e.message ?: "Failed to load stats."
-                    )
+                    it.copy(isLoading = false, error = e.message ?: "Failed to load stats.")
                 }
             }
         }
@@ -236,8 +267,10 @@ class AnalyticsViewModel(app: Application) : AndroidViewModel(app) {
     }
 }
 
+
 class MapViewModel(app: Application) : AndroidViewModel(app) {
     private val repo = ServiceLocator.getProjectRepository(app)
+
     private val _uiState = MutableStateFlow(MapUiState())
     val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
 

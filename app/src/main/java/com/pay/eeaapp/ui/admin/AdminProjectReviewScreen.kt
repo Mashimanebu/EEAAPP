@@ -2,19 +2,22 @@ package com.pay.eeaapp.ui.admin
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pay.eeaapp.domain.models.ProjectDocument
@@ -61,25 +64,40 @@ fun AdminProjectReviewScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)) {
             val project = uiState.project
             when {
                 uiState.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 project == null -> Text(
                     "Project not found.",
-                    modifier = Modifier.align(Alignment.Center).padding(24.dp)
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(24.dp)
                 )
+
                 else -> LazyColumn(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+
                     item {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(project.title, style = MaterialTheme.typography.headlineSmall)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Eco,
+                                    contentDescription = "Environmental Assessment",
+                                    tint = Color(0xFF2E7D32),
+                                    modifier = Modifier.size(28.dp)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(project.title, style = MaterialTheme.typography.headlineSmall)
+                            }
                             StatusChip(project.status)
                         }
                     }
@@ -145,7 +163,9 @@ fun AdminProjectReviewScreen(
                             }
                             uiState.attachments.forEachIndexed { index, (_, name) ->
                                 Row(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -217,13 +237,33 @@ fun AdminProjectReviewScreen(
 
 @Composable
 private fun DocRow(doc: ProjectDocument) {
+    val uriHandler = LocalUriHandler.current
+    val canOpen = doc.fileUrl.isNotBlank()
+
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = canOpen) { uriHandler.openUri(doc.fileUrl) }
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.Description, contentDescription = null)
+        Icon(
+            Icons.Default.Description,
+            contentDescription = null,
+            tint = if (canOpen) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Spacer(Modifier.width(8.dp))
-        Text(doc.fileName, style = MaterialTheme.typography.bodyMedium)
+        Column {
+            Text(doc.fileName, style = MaterialTheme.typography.bodyMedium)
+            if (canOpen) {
+                Text(
+                    "Tap to view",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
     }
 }
 

@@ -189,7 +189,6 @@ fun LoginScreen(
                         value = password,
                         onValueChange = { password = it },
                         label = { Text("Password") },
-                        placeholder = { Text("••••••••") },
                         leadingIcon = {
                             Icon(Icons.Outlined.Lock, contentDescription = null)
                         },
