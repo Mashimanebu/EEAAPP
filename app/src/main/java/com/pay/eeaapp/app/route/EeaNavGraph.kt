@@ -1,7 +1,10 @@
 package com.pay.eeaapp.app.route
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -11,11 +14,14 @@ import com.pay.eeaapp.ui.admin.AdminDashboardScreen
 import com.pay.eeaapp.ui.admin.AdminProjectReviewScreen
 import com.pay.eeaapp.ui.admin.AnalyticsScreen
 import com.pay.eeaapp.ui.admin.MapScreen
+import com.pay.eeaapp.ui.auth.AuthState
 import com.pay.eeaapp.ui.auth.LoginScreen
+import com.pay.eeaapp.ui.auth.LoginViewModel
 import com.pay.eeaapp.ui.auth.SignUpScreen
 import com.pay.eeaapp.ui.detail.ProjectDetailScreen
 import com.pay.eeaapp.ui.proponent.ApplyProjectScreen
 import com.pay.eeaapp.ui.proponent.ProponentDashboardScreen
+import com.pay.eeaapp.ui.welcome.WelcomeScreen
 
 
 @Composable
@@ -24,6 +30,7 @@ fun EeaNavHost(
     startDestination: String,
     modifier: Modifier = Modifier
 ) {
+    val loginViewModel: LoginViewModel = viewModel()
     NavHost(
         navController   = navController,
         startDestination = startDestination,
@@ -58,9 +65,20 @@ fun EeaNavHost(
             )
         }
         composable(Routes.APPLY_PROJECT) {
+            val authState by loginViewModel.state.collectAsState()
+            val loggedInUser = (authState as? AuthState.Success)?.user
+
+            val initials = loggedInUser?.fullName
+                ?.split(" ")
+                ?.mapNotNull { it.firstOrNull()?.uppercaseChar() }
+                ?.take(2)
+                ?.joinToString("") ?: ""
+
             ApplyProjectScreen(
-                onSubmitted  = { navController.popBackStack() },
-                onBack       = { navController.popBackStack() }
+                onSubmitted         = { navController.popBackStack() },
+                onBack              = { navController.popBackStack() },
+                currentUserName     = loggedInUser?.fullName ?: "",
+                currentUserInitials = initials
             )
         }
         composable(

@@ -2,6 +2,7 @@ package com.pay.eeaapp.data.remote
 
 import android.net.Uri
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageException
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
@@ -13,9 +14,20 @@ class FirebaseStorageSource(
         fileUri: Uri,
         originalFileName: String
     ): String {
-        val safeName = "${UUID.randomUUID()}_$originalFileName"
-        val ref = storage.reference.child("projects/$projectId/$safeName")
-        ref.putFile(fileUri).await()
-        return ref.downloadUrl.await().toString()
+        return try {
+            val safeName = "${UUID.randomUUID()}_$originalFileName"
+            val ref = storage.reference.child("projects/$projectId/$safeName")
+            ref.putFile(fileUri).await()
+            ref.downloadUrl.await().toString()
+        } catch (e: StorageException) {
+            throw Exception(
+                when (e.errorCode) {
+                    StorageException.ERROR_OBJECT_NOT_FOUND -> "Storage location not found. Check Firebase Storage rules."
+                    StorageException.ERROR_NOT_AUTHORIZED   -> "Not authorized to upload. Check Firebase Storage rules."
+                    StorageException.ERROR_CANCELED         -> "Upload was cancelled."
+                    else -> "File upload failed: ${e.message}"
+                }
+            )
+        }
     }
 }

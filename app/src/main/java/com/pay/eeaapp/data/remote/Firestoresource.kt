@@ -41,29 +41,21 @@ class FirestoreSource(
             .await()
     }
 
-    fun observeAllProjects(): Flow<List<ProjectEntity>> = callbackFlow {
-        val registration: ListenerRegistration = projectsCol
+    suspend fun getAllProjectsOnce(): List<ProjectEntity> {
+        val snapshot = projectsCol
             .orderBy("updatedAt", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) return@addSnapshotListener
-                val items = snapshot?.documents?.mapNotNull { it.toObject(ProjectEntity::class.java) }
-                    ?: emptyList()
-                trySend(items)
-            }
-        awaitClose { registration.remove() }
+            .get()
+            .await()
+        return snapshot.documents.mapNotNull { it.toObject(ProjectEntity::class.java) }
     }
 
-    fun observeProjectsForProponent(uid: String): Flow<List<ProjectEntity>> = callbackFlow {
-        val registration: ListenerRegistration = projectsCol
+    suspend fun getProjectsForProponentOnce(uid: String): List<ProjectEntity> {
+        val snapshot = projectsCol
             .whereEqualTo("proponentUid", uid)
             .orderBy("updatedAt", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) return@addSnapshotListener
-                val items = snapshot?.documents?.mapNotNull { it.toObject(ProjectEntity::class.java) }
-                    ?: emptyList()
-                trySend(items)
-            }
-        awaitClose { registration.remove() }
+            .get()
+            .await()
+        return snapshot.documents.mapNotNull { it.toObject(ProjectEntity::class.java) }
     }
 
     suspend fun addDocument(document: ProjectDocumentEntity) {

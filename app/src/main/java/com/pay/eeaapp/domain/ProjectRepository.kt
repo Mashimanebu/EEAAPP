@@ -32,17 +32,15 @@ class ProjectRepository(
     private val storageSource: FirebaseStorageSource
 ) {
     suspend fun syncAllProjects() {
-        firestoreSource.observeAllProjects().collect { remoteProjects ->
-            projectDao.upsertAll(remoteProjects)
-        }
+        val projects = firestoreSource.getAllProjectsOnce()
+        projectDao.upsertAll(projects)
     }
+
 
     suspend fun syncProjectsForProponent(uid: String) {
-        firestoreSource.observeProjectsForProponent(uid).collect { remoteProjects ->
-            projectDao.upsertAll(remoteProjects)
-        }
+        val projects = firestoreSource.getProjectsForProponentOnce(uid)
+        projectDao.upsertAll(projects)
     }
-
     suspend fun syncProjectDetails(projectId: String) {
         firestoreSource.observeDocuments(projectId).collect { docs ->
             documentDao.insertAll(docs)

@@ -10,7 +10,7 @@ data class AdminDashboardUiState(
     val user: User? = null,
     val allProjects: List<Project> = emptyList(),
     val filter: AdminFilter = AdminFilter.ALL,
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val error: String? = null
 ) {
     val filteredProjects: List<Project>

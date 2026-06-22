@@ -41,6 +41,7 @@ class AdminDashboardViewModel(app: Application) : AndroidViewModel(app) {
                     _uiState.update { it.copy(user = user) }
                 }
             }
+
             try {
                 syncAll()
             } catch (_: Exception) {

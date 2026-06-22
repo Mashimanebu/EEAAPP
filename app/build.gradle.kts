@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.implementation
 
 plugins {
     alias(libs.plugins.android.application)
@@ -86,6 +87,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.coroutines.android)
     implementation(libs.coroutines.play.services)
+    implementation(libs.play.services.location.v2120)
     implementation(libs.maps.ktx)
     implementation(libs.maps.compose)
 
@@ -99,4 +101,7 @@ dependencies {
 
     implementation(libs.afreakyelf.pdf.viewer)
     implementation(libs.android.maps.utils.ktx.v340)
+
+    implementation(libs.google.location)
+    implementation(libs.play.services.base)
 }
