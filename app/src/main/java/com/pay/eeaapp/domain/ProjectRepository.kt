@@ -25,7 +25,6 @@ import java.util.Locale
 import java.util.UUID
 
 class ProjectRepository(
-
     private val projectDao: ProjectDao,
     private val documentDao: DocumentDao,
     private val reviewDao: ReviewDao,
@@ -37,11 +36,11 @@ class ProjectRepository(
         projectDao.upsertAll(projects)
     }
 
-
     suspend fun syncProjectsForProponent(uid: String) {
         val projects = firestoreSource.getProjectsForProponentOnce(uid)
         projectDao.upsertAll(projects)
     }
+
     suspend fun syncProjectDetails(projectId: String) {
         firestoreSource.observeDocuments(projectId).collect { docs ->
             documentDao.insertAll(docs)
@@ -66,7 +65,6 @@ class ProjectRepository(
     fun observeProjectById(projectId: String): Flow<Project?> =
         projectDao.observeProjectById(projectId).map { it?.toDomain() }
 
-
     fun observeProjectDetail(projectId: String): Flow<ProjectDetail?> =
         projectDao.observeProjectById(projectId).map { withDetails ->
             withDetails?.let {
@@ -77,6 +75,7 @@ class ProjectRepository(
                 )
             }
         }
+
     fun observeAllProjectLocations(): Flow<List<ProjectLocationRow>> =
         projectDao.observeAllProjectLocations()
 
@@ -110,6 +109,8 @@ class ProjectRepository(
 
         projectDao.upsert(entity)
         firestoreSource.upsertProject(entity)
+
+        // ✅ Pass uploaderUid (proponentUid) instead of projectId
         uploadAndAttachDocuments(projectId, proponentUid, UserRole.PROPONENT, documentUris, fileNames)
 
         return entity.toDomainWithEmptyChildren()
@@ -171,15 +172,18 @@ class ProjectRepository(
 
     private suspend fun uploadAndAttachDocuments(
         projectId: String,
-        uploaderUid: String,
+        uploaderUid: String,       // ✅ used for storage path + document record
         uploaderRole: UserRole,
         documentUris: List<Uri>,
         fileNames: List<String>
     ) {
         documentUris.forEachIndexed { index, uri ->
             val name = fileNames.getOrElse(index) { "document_$index.pdf" }
-            val url  = storageSource.uploadProjectDocument(projectId, uri, name)
-            val doc  = ProjectDocumentEntity(
+
+            // ✅ Pass uploaderUid so storage path = users/{uid}/documents/{file}
+            val url = storageSource.uploadProjectDocument(uploaderUid, uri, name)
+
+            val doc = ProjectDocumentEntity(
                 id             = UUID.randomUUID().toString(),
                 projectId      = projectId,
                 fileName       = name,
